@@ -1,0 +1,6 @@
+nofplayers 2
+windowheight 300
+windowwidth 300
+gridsize 5
+wincondition 4
+font font.ttf
