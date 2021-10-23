@@ -47,32 +47,34 @@ public:
 			return;
 		if (!winner) {
 			if ((*game)(x, y) == 0) {
-				(*game)(x, y) = playerToMove + 1;
+				game->move(x, y) = playerToMove + 1;
 				++playerToMove;
 				if (playerToMove >= textures.n) {
 					playerToMove = 0;
 				}
-				winner = game->checkForWinner();
+				winner = game->checkForWinnerNew();
 				if (winner) {
 					++totalScore[winner - 1].second;
 					std::cout << "Player " << winner << " win!\n\n";
-					std::cout << "Current score: ";
-					for (int i = 0; i < totalScore.size(); ++i) {
-						std::cout << "\nPlayer " << i + 1 << ". Score: " << totalScore[i].second;
-					}
-					std::cout << "\n\nPress R to restart";
+					currentScore();
+					std::cout << "\nPress R to restart";
 				}
 				if (game->checkForDraw()) {
-					std::cout << "Draw!\n";
-					std::cout << "Current score: ";
-					for (int i = 0; i < totalScore.size(); ++i) {
+					std::cout << "Draw!\n\n";
+					for (int i = 0; i < totalScore.size(); ++i)
 						totalScore[i].second += 1.0 / totalScore.size();
-						std::cout << "\nPlayer " << i + 1 << ". Score: " << totalScore[i].second;
-					}
-					std::cout << "\n\nPress R to restart";
+					currentScore();
+					std::cout << "\nPress R to restart";
 				}
 			}
 		}
+	}
+	void currentScore() {
+		std::cout << "Current score: ";
+		for (int i = 0; i < totalScore.size(); ++i) {
+			std::cout << "\nPlayer " << i + 1 << ". Score: " << totalScore[i].second;
+		}
+		std::cout << '\n';
 	}
 	void reset() {
 		playerToMove = 0;

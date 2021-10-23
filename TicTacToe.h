@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cassert>
 #include <vector>
 
@@ -6,7 +7,7 @@ class TicTacToe {
 private:
 	short int** grid;
 public:
-	unsigned int gridSize, winCondition;
+	unsigned int gridSize, winCondition, moves = 0, lastMoveX = -1, lastMoveY = -1;
 	TicTacToe(int gridSize = 3, int winCondition = 3) : gridSize(gridSize), winCondition(winCondition) {
 		grid = new short int*[gridSize];
 		for (int x = 0; x < gridSize; ++x) {
@@ -16,91 +17,80 @@ public:
 			}
 		}
 	}
-	int checkForWinner() {
-		// vertical and gorizontal
-		int teamX = 0, timesX = 0, teamY = 0, timesY = 0;
+	int checkForWinnerNew() {
+		int team = 0, times = 0;
+		// horizontally
 		for (int x = 0; x < gridSize; ++x) {
-			for (int y = 0; y < gridSize; ++y) {
-				if (teamX != grid[y][x]) {
-					timesX = 0;
-					teamX = grid[y][x];
-				}
-				if (teamY != grid[x][y]) {
-					timesY = 0;
-					teamY = grid[x][y];
-				}
-				if (teamX != 0 && timesX >= winCondition - 1) {
-					return teamX;
-				}
-				if (teamY != 0 && timesY >= winCondition - 1) {
-					return teamY;
-				}
-				++timesX;
-				++timesY;
+			if (team != grid[x][lastMoveY]) {
+				times = 0;
+				team = grid[x][lastMoveY];
 			}
-			timesX = 0;
-			timesY = 0;
-		}
-		// diagonal 1
-		std::vector<std::vector<int> > ans(gridSize * 2 - 1);
-
-		for (int x = 0; x < gridSize; ++x) {
-			for (int y = 0; y < gridSize; ++y) {
-				ans[x + y].push_back(grid[y][x]);
+			if (team != 0 && times >= winCondition - 1) {
+				return team;
 			}
+			++times;
 		}
-		teamX = 0, timesX = 0, teamY = 0, timesY = 0;
-		for (int x = 0; x < ans.size(); ++x) {
-			for (int y = 0; y < ans[x].size(); ++y) {
-				if (teamX != ans[x][y]) {
-					timesX = 0;
-					teamX = ans[x][y];
-				}
-				if (teamX != 0 && timesX >= winCondition - 1) {
-					return teamX;
-				}
-				++timesX;
+		// vertically
+		team = 0, times = 0;
+		for (int y = 0; y < gridSize; ++y) {
+			if (team != grid[lastMoveX][y]) {
+				times = 0;
+				team = grid[lastMoveX][y];
 			}
-			timesX = 0;
-		}
-
-		for (int i = 0; i < ans.size(); ++i) {
-			ans[i].clear();
-		}
-
-		// diagonal 2
-		for (int x = 0; x < gridSize; ++x) {
-			for (int y = 0; y < gridSize; ++y) {
-				ans[x + y].push_back(grid[y][gridSize - x - 1]);
+			if (team != 0 && times >= winCondition - 1) {
+				return team;
 			}
+			++times;
 		}
-		teamX = 0, timesX = 0, teamY = 0, timesY = 0;
-		for (int x = 0; x < ans.size(); ++x) {
-			for (int y = 0; y < ans[x].size(); ++y) {
-				if (teamX != ans[x][y]) {
-					timesX = 0;
-					teamX = ans[x][y];
-				}
-				if (teamX != 0 && timesX >= winCondition - 1) {
-					return teamX;
-				}
-				++timesX;
+		// diagonally 1
+		int fromX = 0, fromY = 0;
+		if (lastMoveX > lastMoveY) {
+			fromX = lastMoveX - lastMoveY;
+			fromY = 0;
+		}
+		if (lastMoveX < lastMoveY) {
+			fromX = 0;
+			fromY = lastMoveY - lastMoveX;
+		}
+		team = 0, times = 0;
+		for (int xy = 0; xy < gridSize && fromX + xy < gridSize && fromY + xy < gridSize; ++xy) {
+			if (team != grid[fromX + xy][fromY + xy]) {
+				times = 0;
+				team = grid[fromX + xy][fromY + xy];
 			}
-			timesX = 0;
+			if (team != 0 && times >= winCondition - 1) {
+				return team;
+			}
+			++times;
+		}
+		// diagonally 2
+		int N = std::min(gridSize - lastMoveX - 1, lastMoveY);
+		fromX = lastMoveX + N;
+		fromY = lastMoveY - N;
+		team = 0, times = 0;
+		for (int xy = 0; xy < gridSize && fromX - xy >= 0 && fromY + xy < gridSize; ++xy) {
+			if (team != grid[fromX - xy][fromY + xy]) {
+				times = 0;
+				team = grid[fromX - xy][fromY + xy];
+			}
+			if (team != 0 && times >= winCondition - 1) {
+				return team;
+			}
+			++times;
 		}
 		return 0;
 	}
 	bool checkForDraw() {
-		for (int x = 0; x < gridSize; ++x) {
-			for (int y = 0; y < gridSize; ++y) {
-				if (!grid[x][y]) {
-					return 0;
-				}
-			}
-		}
-		return 1;
+		return (moves == gridSize * gridSize);
 	}
-	short int& operator()(unsigned int x, unsigned int y) {
+	short int& move(unsigned int x, unsigned int y) {
+		assert((x >= 0 && x < gridSize) && (y >= 0 && y < gridSize));
+		lastMoveX = x;
+		lastMoveY = y;
+		++moves;
+		return grid[x][y];
+	}
+	short int operator()(unsigned int x, unsigned int y) {
 		assert((x >= 0 && x < gridSize) && (y >= 0 && y < gridSize));
 		return grid[x][y];
 	}
